@@ -2,18 +2,18 @@
 
 ## Production URLs
 
-- **Backend (Railway):** `https://heirringcom-production.up.railway.app`
+- **Backend (Render):** `https://heirring-com-5.onrender.com`
 - **Frontend (Vercel):** Set `VITE_API_URL` in Vercel to point to the backend
 
 ---
 
-## 1. Railway (Backend) – Environment Variables
+## 1. Render (Backend) – Environment Variables
 
-In Railway → Your Service → **Variables**, add:
+In Render → Your Service → **Environment**, add:
 
 | Variable | Value |
 |----------|-------|
-| `API_BASE_URL` | `https://heirringcom-production.up.railway.app` |
+| `API_BASE_URL` | `https://heirring-com-5.onrender.com` |
 | `FRONTEND_URL` | `https://your-vercel-app.vercel.app` *(your actual Vercel URL)* |
 | `MONGODB_URI` | Your MongoDB Atlas connection string |
 | `JWT_SECRET` | Strong secret, min 32 characters |
@@ -29,27 +29,25 @@ In Railway → Your Service → **Variables**, add:
 2. Open your **OAuth 2.0 Client ID**
 3. **Authorized redirect URIs** – add:
    ```
-   https://heirringcom-production.up.railway.app/api/auth/google/callback
+   https://heirring-com-5.onrender.com/api/auth/google/callback
    ```
 4. **Authorized JavaScript origins** – add:
    ```
-   https://heirringcom-production.up.railway.app
+   https://heirring-com-5.onrender.com
    https://your-vercel-app.vercel.app
    ```
 5. **Save**
 
 ---
 
-## 3. Vercel (Frontend) – Environment Variable (fixes ERR_CONNECTION_REFUSED)
-
-**If sign up/login fails with "net::ERR_CONNECTION_REFUSED"** – the frontend is calling `localhost:5000` instead of your Railway backend. Fix it:
+## 3. Vercel (Frontend) – Environment Variable
 
 1. Go to [vercel.com](https://vercel.com) → your project
 2. **Settings** → **Environment Variables**
 3. Add:
    | Name | Value | Environment |
    |------|-------|-------------|
-   | `VITE_API_URL` | `https://heirringcom-production.up.railway.app/api` | Production, Preview |
+   | `VITE_API_URL` | `https://heirring-com-5.onrender.com/api` | Production, Preview |
 
 4. **Redeploy** – Env vars are baked in at build time:
    - **Deployments** tab → ⋮ on latest → **Redeploy**
@@ -61,8 +59,8 @@ In Railway → Your Service → **Variables**, add:
 
 | Where | What |
 |-------|------|
-| **Railway** | Backend runs at `https://heirringcom-production.up.railway.app` |
-| **Google Cloud** | Add redirect: `https://heirringcom-production.up.railway.app/api/auth/google/callback` |
-| **Vercel** | Set `VITE_API_URL=https://heirringcom-production.up.railway.app/api` |
+| **Render** | Backend runs at `https://heirring-com-5.onrender.com` |
+| **Google Cloud** | Add redirect: `https://heirring-com-5.onrender.com/api/auth/google/callback` |
+| **Vercel** | Set `VITE_API_URL=https://heirring-com-5.onrender.com/api` |
 
 Replace `your-vercel-app` with your actual Vercel project URL.

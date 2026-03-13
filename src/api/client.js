@@ -1,11 +1,13 @@
 /**
  * API client for backend requests
- * Production: Railway backend | Local: localhost
+ * - Local: localhost:5000
+ * - Production: Render.com backend (or set VITE_API_URL in Vercel)
  */
 
 const isLocalhost = typeof window !== "undefined" && /localhost|127\.0\.0\.1/.test(window.location?.hostname || "");
+const PRODUCTION_API_URL = "https://heirring-com-5.onrender.com/api";
 export const API_BASE = import.meta.env.VITE_API_URL
-  || (isLocalhost ? "http://localhost:5000/api" : "https://heirringcom-production.up.railway.app/api");
+  || (isLocalhost ? "http://localhost:5000/api" : PRODUCTION_API_URL);
 
 function getToken() {
   return localStorage.getItem("token");
