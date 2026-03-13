@@ -64,3 +64,28 @@ In Render → Your Service → **Environment**, add:
 | **Vercel** | Set `VITE_API_URL=https://heirring-com-5.onrender.com/api` |
 
 Replace `your-vercel-app` with your actual Vercel project URL.
+
+---
+
+## 5. Fix 502 Bad Gateway on Render
+
+**502** = Render's proxy cannot reach your backend. Check:
+
+1. **Render Dashboard** → Your service → **Logs**
+   - If the app crashes on startup: MongoDB connection fail, missing env vars, etc.
+   - Look for `MongoDB Connected` – if not present, `MONGODB_URI` may be wrong or MongoDB Atlas blocks Render's IPs
+
+2. **MongoDB Atlas** → Network Access → **Add IP Address** → **Allow from anywhere** (`0.0.0.0/0`)  
+   Render uses dynamic IPs; whitelisting specific IPs will not work.
+
+3. **Required env vars** (all must be set in Render → Environment):
+   - `MONGODB_URI` – required
+   - `JWT_SECRET` – required
+   - `NODE_ENV` = `production`
+
+4. **Cold start** – Free tier sleeps after ~15 min. First request can take 30–60 sec; wait and retry.
+
+5. **Build/Start** – Ensure:
+   - **Build:** `npm install`
+   - **Start:** `npm start`
+   - **Root directory:** `backend` (if your repo has backend in a subfolder)

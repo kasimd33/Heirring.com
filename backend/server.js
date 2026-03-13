@@ -46,7 +46,7 @@ app.use(express.urlencoded({ extended: true }));
 // Passport
 app.use(passport.initialize());
 
-// CORS - allow localhost on any port in development
+// CORS - allow localhost, Vercel (production + preview), and FRONTEND_URL
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
@@ -55,13 +55,21 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+  if (process.env.NODE_ENV !== 'production' && origin?.startsWith('http://localhost:')) return true;
+  // Vercel preview/production: *.vercel.app
+  try {
+    const u = new URL(origin);
+    if (u.hostname === 'vercel.app' || u.hostname.endsWith('.vercel.app')) return true;
+  } catch (_) {}
+  return false;
+};
+
 app.use(
   cors({
-    origin: (origin, cb) => {
-      const allowed = !origin || allowedOrigins.includes(origin) ||
-        (process.env.NODE_ENV !== 'production' && origin?.startsWith('http://localhost:'));
-      cb(null, allowed ? (origin || true) : false);
-    },
+    origin: (origin, cb) => cb(null, isAllowedOrigin(origin) ? (origin || true) : false),
     credentials: true,
   })
 );
