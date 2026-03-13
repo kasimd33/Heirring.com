@@ -18,29 +18,41 @@ const generateToken = (id) => {
 
 /**
  * @route   POST /api/auth/register
- * @desc    Register a new recruiter/admin
+ * @desc    Register a new recruiter/seeker
  */
 export const register = async (req, res, next) => {
   try {
     const { name, email, password, role, company } = req.body;
 
+    if (!email || !password) {
+      res.status(400);
+      throw new Error('Email and password are required');
+    }
+
+    const displayName = (name && String(name).trim()) || 'User';
+    const emailNormalized = String(email).trim().toLowerCase();
+
     // Check if user exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: emailNormalized });
     if (existingUser) {
       res.status(400);
       throw new Error('User with this email already exists');
     }
 
     const user = await User.create({
-      name,
-      email,
+      name: displayName,
+      email: emailNormalized,
       password,
-      role: role || 'recruiter',
-      company,
+      role: ['admin', 'recruiter', 'seeker'].includes(role) ? role : 'recruiter',
+      company: company ? String(company).trim() : undefined,
     });
 
-    // Create analytics record for new user
-    await Analytics.create({ userId: user._id });
+    // Create analytics record (non-critical - don't fail registration)
+    try {
+      await Analytics.create({ userId: user._id });
+    } catch (analyticsErr) {
+      console.warn('[Auth] Analytics create failed:', analyticsErr?.message);
+    }
 
     res.status(201).json({
       success: true,
@@ -54,6 +66,9 @@ export const register = async (req, res, next) => {
       },
     });
   } catch (error) {
+    if (process.env.NODE_ENV === 'production') {
+      console.error('[Auth register]', error?.message || error);
+    }
     next(error);
   }
 };
