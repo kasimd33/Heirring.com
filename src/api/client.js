@@ -1,8 +1,11 @@
 /**
  * API client for backend requests
+ * Production: Railway backend | Local: localhost
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const isLocalhost = typeof window !== "undefined" && /localhost|127\.0\.0\.1/.test(window.location?.hostname || "");
+export const API_BASE = import.meta.env.VITE_API_URL
+  || (isLocalhost ? "http://localhost:5000/api" : "https://heirringcom-production.up.railway.app/api");
 
 function getToken() {
   return localStorage.getItem("token");

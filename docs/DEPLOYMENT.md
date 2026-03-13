@@ -40,15 +40,20 @@ In Railway → Your Service → **Variables**, add:
 
 ---
 
-## 3. Vercel (Frontend) – Environment Variable
+## 3. Vercel (Frontend) – Environment Variable (fixes ERR_CONNECTION_REFUSED)
 
-In Vercel → Project → **Settings** → **Environment Variables**:
+**If sign up/login fails with "net::ERR_CONNECTION_REFUSED"** – the frontend is calling `localhost:5000` instead of your Railway backend. Fix it:
 
-| Name | Value |
-|------|-------|
-| `VITE_API_URL` | `https://heirringcom-production.up.railway.app/api` |
+1. Go to [vercel.com](https://vercel.com) → your project
+2. **Settings** → **Environment Variables**
+3. Add:
+   | Name | Value | Environment |
+   |------|-------|-------------|
+   | `VITE_API_URL` | `https://heirringcom-production.up.railway.app/api` | Production, Preview |
 
-Redeploy the frontend after adding this.
+4. **Redeploy** – Env vars are baked in at build time:
+   - **Deployments** tab → ⋮ on latest → **Redeploy**
+   - Or push a new commit to trigger a fresh build
 
 ---
 

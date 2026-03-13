@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { MapPin, Mail, Phone, Link2, Linkedin, Github, Briefcase } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-import { apiFetch, apiUpload } from "../../api/client";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import { apiFetch, apiUpload, API_BASE } from "../../api/client";
 
 export default function ProfileHeader({ profile, completion, onUpdate }) {
   const { user: authUser } = useAuth();
