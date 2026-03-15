@@ -22,7 +22,16 @@ const generateToken = (id) => {
  */
 export const register = async (req, res, next) => {
   try {
-    const { name, email, password, role, company } = req.body || {};
+    const body = req.body;
+    const { name, email, password, role, company } = body || {};
+
+    // Handle empty/missing body (can happen if Content-Type or body parser fails)
+    if (!body || typeof body !== 'object') {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid request. Please send JSON with email and password.',
+      });
+    }
 
     if (!email || !password) {
       return res.status(400).json({
@@ -33,6 +42,21 @@ export const register = async (req, res, next) => {
 
     const displayName = (name && String(name).trim()) || 'User';
     const emailNormalized = String(email).trim().toLowerCase();
+
+    // Basic email format check before hitting DB
+    if (!/^\S+@\S+\.\S+$/.test(emailNormalized)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please provide a valid email address',
+      });
+    }
+
+    if (String(password).length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password must be at least 6 characters',
+      });
+    }
 
     // Check if user exists
     const existingUser = await User.findOne({ email: emailNormalized });
@@ -70,6 +94,22 @@ export const register = async (req, res, next) => {
       },
     });
   } catch (error) {
+    // Handle Mongoose validation errors with clear message
+    if (error.name === 'ValidationError') {
+      const msg = Object.values(error.errors || {})
+        .map((e) => e.message)
+        .join(', ');
+      return res.status(400).json({
+        success: false,
+        error: msg || 'Validation failed',
+      });
+    }
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        error: 'User with this email already exists',
+      });
+    }
     if (process.env.NODE_ENV === 'production') {
       console.error('[Auth register]', error?.message || error);
     }
