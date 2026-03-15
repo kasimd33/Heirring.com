@@ -110,7 +110,7 @@ jobSchema.index({ title: 'text', description: 'text', company: 'text', jobCatego
 jobSchema.index({ status: 1, createdAt: -1 });
 jobSchema.index({ createdBy: 1 });
 jobSchema.index({ source: 1 });
-jobSchema.index({ externalId: 1 });
+// externalId index is auto-created by unique: true, sparse: true on the field - do not duplicate
 jobSchema.index({ location: 1 });
 jobSchema.index({ title: 1, company: 1, location: 1 }); // For duplicate detection
 jobSchema.index({ requiredSkills: 1 });

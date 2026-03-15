@@ -11,13 +11,11 @@ const jobRecommendationSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-      index: true,
     },
     jobId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Job',
       required: true,
-      index: true,
     },
     matchScore: {
       type: Number,
