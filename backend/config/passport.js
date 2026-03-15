@@ -13,8 +13,23 @@ import User from '../models/User.js';
 import Analytics from '../models/Analytics.js';
 import jwt from 'jsonwebtoken';
 
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
-const API_BASE = process.env.API_BASE_URL || process.env.BACKEND_URL || 'http://localhost:5000';
+// OAuth callback & redirect URLs - BACKEND_URL overrides for local dev
+const rawBackend = process.env.BACKEND_URL || process.env.API_BASE_URL || '';
+const rawFrontend = process.env.FRONTEND_URL || '';
+const forceLocal = process.env.BACKEND_URL === 'http://localhost:5000' || process.env.NODE_ENV === 'development';
+
+const FRONTEND_URL = (() => {
+  if (forceLocal && !rawFrontend) return 'http://localhost:5173';
+  const u = rawFrontend || 'http://localhost:5173';
+  return u.startsWith('http') ? u : `https://${u}`;
+})();
+
+const API_BASE = (() => {
+  if (forceLocal) return 'http://localhost:5000';
+  const u = rawBackend || 'http://localhost:5000';
+  return u.startsWith('http') ? u : `https://${u}`;
+})();
+
 
 export function generateOAuthToken(userId) {
   return jwt.sign(

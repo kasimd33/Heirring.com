@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { apiFetch } from "../api/client";
-import { Search, Filter } from "lucide-react";
+import { motion } from "framer-motion";
+import { Search, FileText } from "lucide-react";
 import ApplicationCard from "../components/ApplicationCard";
+import { JobCardSkeleton } from "../components/ui/Skeleton";
 
 const STATUS_OPTIONS = [
   { value: "", label: "All statuses" },
@@ -16,12 +18,7 @@ export default function MyApplications() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
-  const [filters, setFilters] = useState({
-    status: "",
-    keyword: "",
-    fromDate: "",
-    toDate: "",
-  });
+  const [filters, setFilters] = useState({ status: "", keyword: "", fromDate: "", toDate: "" });
   const [searchKey, setSearchKey] = useState(0);
 
   useEffect(() => {
@@ -38,7 +35,6 @@ export default function MyApplications() {
       if (filters.keyword) params.set("keyword", filters.keyword);
       if (filters.fromDate) params.set("fromDate", filters.fromDate);
       if (filters.toDate) params.set("toDate", filters.toDate);
-
       const res = await apiFetch(`/applications/me?${params.toString()}`);
       setApplications(res.data ?? []);
       setPagination((p) => ({
@@ -47,8 +43,7 @@ export default function MyApplications() {
         pages: res.pagination?.pages ?? 1,
         total: res.pagination?.total ?? 0,
       }));
-    } catch (err) {
-      console.error(err);
+    } catch {
       setApplications([]);
     } finally {
       setLoading(false);
@@ -62,25 +57,29 @@ export default function MyApplications() {
   };
 
   const handleWithdraw = async (id) => {
-    if (!confirm("Are you sure you want to withdraw this application?")) return;
+    if (!confirm("Withdraw this application?")) return;
     try {
       await apiFetch(`/applications/${id}`, { method: "DELETE" });
       loadApplications();
     } catch (err) {
-      alert(err.message || "Failed to withdraw");
+      alert(err.message || "Failed");
     }
   };
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">My Applications</h1>
-        <p className="mt-1 text-muted-foreground">
-          Track your application status across all jobs
-        </p>
-      </div>
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+        <h1 className="text-2xl font-bold text-foreground">Application Status</h1>
+        <p className="mt-1 text-muted-foreground">Track your application status across all jobs</p>
+      </motion.div>
 
-      <form onSubmit={handleSearch} className="flex flex-col gap-4">
+      <motion.form
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+        onSubmit={handleSearch}
+        className="flex flex-col gap-4"
+      >
         <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
           <div className="relative flex-1 min-w-[180px]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -89,13 +88,13 @@ export default function MyApplications() {
               placeholder="Job title or company..."
               value={filters.keyword}
               onChange={(e) => setFilters((f) => ({ ...f, keyword: e.target.value }))}
-              className="w-full rounded-lg border border-border bg-input py-2 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground"
+              className="w-full rounded-xl border border-border bg-input py-2.5 pl-10 pr-4 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>
           <select
             value={filters.status}
             onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
-            className="rounded-lg border border-border bg-input px-4 py-2 text-sm text-foreground min-w-[140px]"
+            className="rounded-xl border border-border bg-input px-4 py-2.5 text-sm min-w-[140px] focus:border-primary"
           >
             {STATUS_OPTIONS.map((opt) => (
               <option key={opt.value || "all"} value={opt.value}>{opt.label}</option>
@@ -105,72 +104,64 @@ export default function MyApplications() {
             type="date"
             value={filters.fromDate}
             onChange={(e) => setFilters((f) => ({ ...f, fromDate: e.target.value }))}
-            className="rounded-lg border border-border bg-input px-4 py-2 text-sm text-foreground"
-            placeholder="From"
+            className="rounded-xl border border-border bg-input px-4 py-2.5 text-sm"
           />
           <input
             type="date"
             value={filters.toDate}
             onChange={(e) => setFilters((f) => ({ ...f, toDate: e.target.value }))}
-            className="rounded-lg border border-border bg-input px-4 py-2 text-sm text-foreground"
-            placeholder="To"
+            className="rounded-xl border border-border bg-input px-4 py-2.5 text-sm"
           />
-          <button
+          <motion.button
             type="submit"
-            className="rounded-lg bg-primary px-6 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white"
           >
             Search
-          </button>
+          </motion.button>
         </div>
-      </form>
+      </motion.form>
 
       {loading ? (
-        <p className="text-muted-foreground py-12 text-center">Loading applications...</p>
-      ) : applications.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-12 text-center">
-          <p className="text-muted-foreground">No applications yet</p>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Apply to jobs from the Jobs page to see them here
-          </p>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="rounded-2xl border border-border bg-card p-6">
+              <div className="h-6 w-3/4 bg-muted rounded-lg animate-pulse" />
+              <div className="mt-2 h-4 w-1/2 bg-muted rounded animate-pulse" />
+              <div className="mt-4 h-4 w-1/3 bg-muted rounded animate-pulse" />
+            </div>
+          ))}
         </div>
+      ) : applications.length === 0 ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="rounded-2xl border border-border bg-card p-16 text-center"
+        >
+          <FileText className="mx-auto h-16 w-16 text-muted-foreground" />
+          <p className="mt-4 text-lg font-medium text-foreground">No applications yet</p>
+          <p className="mt-2 text-muted-foreground">Apply to jobs from the Jobs page to see them here</p>
+        </motion.div>
       ) : (
         <>
-          <p className="text-sm text-muted-foreground">
-            {pagination.total} application{pagination.total !== 1 ? "s" : ""} found
-          </p>
+          <p className="text-sm text-muted-foreground">{pagination.total} application{pagination.total !== 1 ? "s" : ""} found</p>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {applications.map((app) => (
               <ApplicationCard
                 key={app._id}
                 application={app}
                 onWithdraw={handleWithdraw}
-                showTimeline={true}
+                showTimeline
                 isRecruiterView={false}
               />
             ))}
           </div>
-
           {pagination.pages > 1 && (
-            <div className="flex justify-center gap-2 mt-8">
-              <button
-                onClick={() => setPagination((p) => ({ ...p, page: Math.max(1, p.page - 1) }))}
-                disabled={pagination.page <= 1}
-                className="rounded-lg border border-border px-4 py-2 text-sm disabled:opacity-50 hover:bg-card"
-              >
-                Previous
-              </button>
-              <span className="flex items-center px-4 text-sm text-muted-foreground">
-                Page {pagination.page} of {pagination.pages}
-              </span>
-              <button
-                onClick={() =>
-                  setPagination((p) => ({ ...p, page: Math.min(p.pages, p.page + 1) }))
-                }
-                disabled={pagination.page >= pagination.pages}
-                className="rounded-lg border border-border px-4 py-2 text-sm disabled:opacity-50 hover:bg-card"
-              >
-                Next
-              </button>
+            <div className="flex justify-center gap-2 mt-10">
+              <button onClick={() => setPagination((p) => ({ ...p, page: Math.max(1, p.page - 1) }))} disabled={pagination.page <= 1} className="rounded-xl border border-border px-4 py-2 text-sm disabled:opacity-50 hover:bg-muted">Previous</button>
+              <span className="flex items-center px-4 text-sm text-muted-foreground">Page {pagination.page} of {pagination.pages}</span>
+              <button onClick={() => setPagination((p) => ({ ...p, page: Math.min(p.pages, p.page + 1) }))} disabled={pagination.page >= pagination.pages} className="rounded-xl border border-border px-4 py-2 text-sm disabled:opacity-50 hover:bg-muted">Next</button>
             </div>
           )}
         </>

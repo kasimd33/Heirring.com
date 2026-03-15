@@ -34,9 +34,6 @@ import userRoutes from './routes/userRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
 import savedJobRoutes from './routes/savedJobRoutes.js';
 
-// Connect to MongoDB
-connectDB();
-
 const app = express();
 
 // Body parser
@@ -101,13 +98,23 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+async function startServer() {
+  try {
+    await connectDB();
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
 
-  // Cron: Import Adzuna jobs every 6 hours
-  cron.schedule('0 */6 * * *', async () => {
-    console.log('[Cron] Running Adzuna job import...');
-    await importAdzunaJobs();
-  });
-  console.log('[Cron] Adzuna import scheduled every 6 hours');
-});
+      // Cron: Import Adzuna jobs every 6 hours
+      cron.schedule('0 */6 * * *', async () => {
+        console.log('[Cron] Running Adzuna job import...');
+        await importAdzunaJobs();
+      });
+      console.log('[Cron] Adzuna import scheduled every 6 hours');
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err?.message || err);
+    process.exit(1);
+  }
+}
+
+startServer();

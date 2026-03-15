@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, LogOut } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../utils/cn";
 import { useAuth } from "../context/AuthContext";
 
 const navLinks = [
-  { label: "Product", href: "#product" },
-  { label: "Solutions", href: "#solutions" },
+  { label: "Jobs", href: "/browse-jobs" },
+  { label: "Companies", href: "#companies" },
+  { label: "How it Works", href: "#product" },
   { label: "Pricing", href: "#pricing" },
-  { label: "Resources", href: "#resources" },
 ];
 
 export default function Navbar() {
@@ -19,73 +20,82 @@ export default function Navbar() {
   const handleLogout = () => {
     logout();
     setMobileMenuOpen(false);
-    navigate("/");
+    navigate("/login");
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
+    <motion.header
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="sticky top-0 z-50 border-b border-border/50 glass"
+    >
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <span className="text-xl font-bold text-foreground">Heirring.com</span>
-          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary">
-            <span className="text-xs text-primary-foreground">✓</span>
+        <Link to={user ? "/" : "/login"} className="flex items-center gap-2 group">
+          <span className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+            Heirring.com
+          </span>
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-medium">
+            ✓
           </span>
         </Link>
 
-        {/* Desktop nav links - centered */}
         <div className="hidden md:flex md:flex-1 md:items-center md:justify-center md:gap-8">
-          {navLinks.map((link) => (
-            <a
+          {user && navLinks.map((link) => (
+            <Link
               key={link.label}
-              href={link.href}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              to={link.href}
+              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors duration-200"
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </div>
 
-        {/* Auth buttons */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {user ? (
             <>
               <Link
-                to="/dashboard"
-                className="hidden sm:inline-flex text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                to={user.role === "seeker" ? "/dashboard/seeker" : "/dashboard/employer"}
+                className="hidden sm:inline-flex text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
               >
                 Dashboard
               </Link>
-              <span className="hidden sm:inline text-sm text-muted-foreground">{user.name}</span>
-              <button
+              <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[120px]">
+                {user.name}
+              </span>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={handleLogout}
                 className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-card transition-colors"
               >
                 <LogOut className="h-4 w-4" />
                 Logout
-              </button>
+              </motion.button>
             </>
           ) : (
             <>
               <Link
                 to="/login"
-                className="hidden sm:inline-flex text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className="hidden sm:inline-flex text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
               >
-                Login
+                Log in
               </Link>
-              <Link
-                to="/signup"
-                className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-              >
-                Get Started
-              </Link>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                <Link
+                  to="/signup"
+                  className="inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 hover:shadow-primary-glow transition-all duration-200"
+                >
+                  Get Started
+                </Link>
+              </motion.div>
             </>
           )}
 
-          {/* Mobile menu button */}
           <button
             type="button"
-            className="md:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-card border border-border"
+            className="md:hidden p-2.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -94,51 +104,64 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile menu */}
-      <div
-        className={cn(
-          "md:hidden border-t border-border bg-background",
-          mobileMenuOpen ? "block" : "hidden"
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+                className="md:hidden border-t border-border bg-background overflow-hidden"
+          >
+            <div className="px-4 py-4 space-y-2">
+              {user && navLinks.map((link) => (
+                <Link
+                  key={link.label}
+                  to={link.href}
+                  className="block py-2.5 text-sm font-medium text-muted-foreground hover:text-primary"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              {user ? (
+                <>
+                  <Link
+                    to={user.role === "seeker" ? "/dashboard/seeker" : "/dashboard/employer"}
+                    className="block py-2.5 text-sm font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <div className="pt-4 flex gap-3">
+                  <Link
+                    to="/login"
+                    className="flex-1 py-2.5 text-center text-sm font-medium border border-border rounded-xl"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    to="/signup"
+                    className="flex-1 py-2.5 text-center text-sm font-semibold bg-primary text-white rounded-xl"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Get Started
+                  </Link>
+                </div>
+              )}
+            </div>
+          </motion.div>
         )}
-      >
-        <div className="space-y-1 px-4 py-4">
-          {navLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              className="block py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              {link.label}
-            </a>
-          ))}
-          {user ? (
-            <>
-              <Link
-                to="/dashboard"
-                className="block py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Dashboard
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="block w-full text-left py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <Link
-              to="/login"
-              className="block py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Login
-            </Link>
-          )}
-        </div>
-      </div>
-    </header>
+      </AnimatePresence>
+    </motion.header>
   );
 }
