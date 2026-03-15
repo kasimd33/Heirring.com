@@ -123,14 +123,16 @@ export const register = async (req, res, next) => {
  */
 export const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
 
     if (!email || !password) {
       res.status(400);
       throw new Error('Please provide email and password');
     }
 
-    const user = await User.findOne({ email }).select('+password');
+    // Normalize email same as register (lowercase, trim) - MongoDB is case-sensitive
+    const emailNormalized = String(email).trim().toLowerCase();
+    const user = await User.findOne({ email: emailNormalized }).select('+password');
     if (!user) {
       res.status(401);
       throw new Error('Invalid email or password');
