@@ -1,20 +1,30 @@
 /**
  * API client for backend requests
- * - Local: localhost:5000
- * - Production: Render.com backend (or set VITE_API_URL in Vercel)
+ * - Local: localhost:5000/api
+ * - Production: Set VITE_API_URL in Vercel (e.g. https://heirring-com-6.onrender.com/api)
  */
 
 const isLocalhost = typeof window !== "undefined" && /localhost|127\.0\.0\.1/.test(window.location?.hostname || "");
-const PRODUCTION_API_URL = "https://heirring-com-5.onrender.com/api";
-export const API_BASE = import.meta.env.VITE_API_URL
-  || (isLocalhost ? "http://localhost:5000/api" : PRODUCTION_API_URL);
+const PRODUCTION_API_URL = "https://heirring-com-6.onrender.com/api";
+
+function normalizeApiBase(raw) {
+  if (!raw || typeof raw !== "string") return raw;
+  let base = raw.trim().replace(/\/+$/, ""); // remove trailing slashes
+  if (!base.endsWith("/api")) base = base + (base.endsWith("/") ? "" : "/") + "api";
+  return base;
+}
+
+export const API_BASE = normalizeApiBase(
+  import.meta.env.VITE_API_URL || (isLocalhost ? "http://localhost:5000/api" : PRODUCTION_API_URL)
+);
 
 function getToken() {
   return localStorage.getItem("token");
 }
 
 export async function apiFetch(endpoint, options = {}) {
-  const url = `${API_BASE}${endpoint}`;
+  const path = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+  const url = `${API_BASE.replace(/\/+$/, "")}${path}`;
   const headers = {
     "Content-Type": "application/json",
     ...options.headers,
@@ -35,10 +45,16 @@ export async function apiFetch(endpoint, options = {}) {
     throw new Error(err?.message || "Network error. Check your connection.");
   }
 
-  const data = await res.json().catch(() => ({}));
+  let data = {};
+  try {
+    const text = await res.text();
+    data = text ? JSON.parse(text) : {};
+  } catch (_) {
+    data = {};
+  }
 
   if (!res.ok) {
-    const msg = data?.error || data?.message || `Request failed (${res.status})`;
+    const msg = data?.error || data?.message || (data?.errors?.[0]?.msg) || `Request failed (${res.status})`;
     throw new Error(typeof msg === "string" ? msg : "Request failed");
   }
 
@@ -47,7 +63,8 @@ export async function apiFetch(endpoint, options = {}) {
 
 /** Upload file (e.g. avatar) - do not set Content-Type, let browser set multipart boundary */
 export async function apiUpload(endpoint, file, fieldName = "avatar") {
-  const url = `${API_BASE}${endpoint}`;
+  const path = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+  const url = `${API_BASE.replace(/\/+$/, "")}${path}`;
   const formData = new FormData();
   formData.append(fieldName, file);
 

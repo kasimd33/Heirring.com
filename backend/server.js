@@ -36,9 +36,9 @@ import savedJobRoutes from './routes/savedJobRoutes.js';
 
 const app = express();
 
-// Body parser
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Body parser (extended limit for production proxies)
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Passport
 app.use(passport.initialize());

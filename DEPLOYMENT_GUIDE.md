@@ -175,6 +175,8 @@ git push -u origin main
 |-----|-------|
 | `VITE_API_URL` | `https://heirring-backend.onrender.com/api` |
 
+> **Important:** Must end with `/api`, no trailing slash. Example: `https://heirring-com-6.onrender.com/api`
+
 > Use your actual Render backend URL from Part 3.
 
 5. Click **Deploy**

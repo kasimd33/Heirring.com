@@ -22,11 +22,13 @@ const generateToken = (id) => {
  */
 export const register = async (req, res, next) => {
   try {
-    const { name, email, password, role, company } = req.body;
+    const { name, email, password, role, company } = req.body || {};
 
     if (!email || !password) {
-      res.status(400);
-      throw new Error('Email and password are required');
+      return res.status(400).json({
+        success: false,
+        error: 'Email and password are required',
+      });
     }
 
     const displayName = (name && String(name).trim()) || 'User';
@@ -35,8 +37,10 @@ export const register = async (req, res, next) => {
     // Check if user exists
     const existingUser = await User.findOne({ email: emailNormalized });
     if (existingUser) {
-      res.status(400);
-      throw new Error('User with this email already exists');
+      return res.status(400).json({
+        success: false,
+        error: 'User with this email already exists',
+      });
     }
 
     const user = await User.create({
