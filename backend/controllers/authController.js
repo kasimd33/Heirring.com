@@ -58,12 +58,16 @@ export const register = async (req, res, next) => {
       });
     }
 
-    // Check if user exists
-    const existingUser = await User.findOne({ email: emailNormalized });
+    // Check if user exists (case-insensitive - handles any DB inconsistency)
+    const emailRegex = new RegExp(`^${emailNormalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+    const existingUser = await User.findOne({ email: { $regex: emailRegex } }).select('+password');
     if (existingUser) {
+      const isOAuthOnly = (existingUser.googleId || existingUser.linkedinId) && !existingUser.password;
       return res.status(400).json({
         success: false,
-        error: 'User with this email already exists',
+        error: isOAuthOnly
+          ? 'This email is registered with Google or LinkedIn. Please sign in using that option.'
+          : 'User with this email already exists',
       });
     }
 
@@ -130,12 +134,20 @@ export const login = async (req, res, next) => {
       throw new Error('Please provide email and password');
     }
 
-    // Normalize email same as register (lowercase, trim) - MongoDB is case-sensitive
+    // Normalize and find user (case-insensitive query for reliability)
     const emailNormalized = String(email).trim().toLowerCase();
-    const user = await User.findOne({ email: emailNormalized }).select('+password');
+    const emailRegex = new RegExp(`^${emailNormalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+    const user = await User.findOne({ email: { $regex: emailRegex } }).select('+password');
+
     if (!user) {
       res.status(401);
       throw new Error('Invalid email or password');
+    }
+
+    // OAuth-only users have no password - guide them to use Google/LinkedIn
+    if (!user.password && (user.googleId || user.linkedinId)) {
+      res.status(400);
+      throw new Error('This account was created with Google or LinkedIn. Please sign in using that option.');
     }
 
     const isMatch = await user.comparePassword(password);
