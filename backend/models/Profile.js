@@ -82,6 +82,4 @@ const profileSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-profileSchema.index({ userId: 1 });
-
 export default mongoose.model('Profile', profileSchema);
