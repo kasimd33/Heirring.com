@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation, Navigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
-import { API_BASE } from "../api/client";
+import { API_ORIGIN } from "../api/client";
 import Navbar from "../components/Navbar";
 
 export default function Login() {
@@ -53,11 +53,11 @@ export default function Login() {
   if (user) return <Navigate to="/" replace />;
 
   const handleGoogleLogin = () => {
-    window.location.href = `${API_BASE.replace("/api", "")}/api/auth/google`;
+    window.location.href = `${API_ORIGIN}/api/auth/google`;
   };
 
   const handleLinkedInLogin = () => {
-    window.location.href = `${API_BASE.replace("/api", "")}/api/auth/linkedin`;
+    window.location.href = `${API_ORIGIN}/api/auth/linkedin`;
   };
 
   const handleSubmit = async (e) => {

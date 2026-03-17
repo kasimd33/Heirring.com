@@ -1,22 +1,22 @@
 /**
  * API client for backend requests
- * - Local: localhost:5000/api
- * - Production: Set VITE_API_URL in Vercel (e.g. https://heirring-com-6.onrender.com/api)
+ * - Local origin: http://localhost:5000
+ * - Production origin: Set VITE_API_URL in Vercel (e.g. https://heirring-com-6.onrender.com)
  */
 
 const isLocalhost = typeof window !== "undefined" && /localhost|127\.0\.0\.1/.test(window.location?.hostname || "");
-const PRODUCTION_API_URL = "https://heirring-com-6.onrender.com/api";
+const PRODUCTION_API_ORIGIN = "https://heirring-com-6.onrender.com";
 
-function normalizeApiBase(raw) {
+function normalizeOrigin(raw) {
   if (!raw || typeof raw !== "string") return raw;
-  let base = raw.trim().replace(/\/+$/, ""); // remove trailing slashes
-  if (!base.endsWith("/api")) base = base + (base.endsWith("/") ? "" : "/") + "api";
-  return base;
+  return raw.trim().replace(/\/+$/, ""); // remove trailing slashes
 }
 
-export const API_BASE = normalizeApiBase(
-  import.meta.env.VITE_API_URL || (isLocalhost ? "http://localhost:5000/api" : PRODUCTION_API_URL)
+export const API_ORIGIN = normalizeOrigin(
+  import.meta.env.VITE_API_URL || (isLocalhost ? "http://localhost:5000" : PRODUCTION_API_ORIGIN)
 );
+
+export const API_BASE = `${API_ORIGIN}/api`;
 
 function getToken() {
   return localStorage.getItem("token");
@@ -24,7 +24,7 @@ function getToken() {
 
 export async function apiFetch(endpoint, options = {}) {
   const path = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
-  const url = `${API_BASE.replace(/\/+$/, "")}${path}`;
+  const url = `${API_BASE}${path}`;
   const headers = {
     "Content-Type": "application/json",
     ...options.headers,
@@ -64,7 +64,7 @@ export async function apiFetch(endpoint, options = {}) {
 /** Upload file (e.g. avatar) - do not set Content-Type, let browser set multipart boundary */
 export async function apiUpload(endpoint, file, fieldName = "avatar") {
   const path = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
-  const url = `${API_BASE.replace(/\/+$/, "")}${path}`;
+  const url = `${API_BASE}${path}`;
   const formData = new FormData();
   formData.append(fieldName, file);
 
